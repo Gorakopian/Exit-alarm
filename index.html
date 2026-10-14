@@ -80,7 +80,9 @@ a { color: var(--hazard); }
       open.textContent = "Open @" + r.bot + " →";
       status.textContent = r.radio ? "Live: watching 100 traders right now." : "Bot is ready. Waiting for the live trade feed.";
     } else {
-      status.textContent = r.problem === "no_bot_token" ? "Almost there: the bot token still needs to be added." : "The bot isn't connected yet. Try again in a minute.";
+      status.textContent = r.problem === "no_bot_token" ? "Almost there: the bot token still needs to be added."
+        : r.problem === "no_database" ? "Almost there: the database still needs to be connected."
+        : "The bot isn't connected yet. Try again in a minute.";
     }
   } catch {
     status.textContent = "Couldn't reach the server. Try again in a minute.";

@@ -8,7 +8,10 @@ import { redis, getJSON, setJSON, hasDatabase } from "../lib/redis.js";
 import { send } from "../lib/http.js";
 
 export default async function handler(req, res) {
-  if (!hasDatabase() && process.env.VERCEL) return send(res, 503, { error: "The database isn't connected yet." });
+  if (!hasDatabase() && process.env.VERCEL) {
+    const dbVars = Object.keys(process.env).filter((k) => /KV|REDIS|UPSTASH/i.test(k));
+    return send(res, 200, { ready: false, problem: "no_database", seen: dbVars });
+  }
   if (!hasBot()) return send(res, 200, { ready: false, problem: "no_bot_token" });
   const host = String(req.headers?.["x-forwarded-host"] || req.headers?.host || "").split(",")[0].trim();
   const oneOff = /-[a-z0-9]{9}-[a-z0-9-]+\.vercel\.app$/i.test(host);
