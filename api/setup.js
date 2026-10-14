@@ -17,7 +17,8 @@ export default async function handler(req, res) {
   const oneOff = /-[a-z0-9]{9}-[a-z0-9-]+\.vercel\.app$/i.test(host);
   try {
     let bot = await getJSON("alarm:bot");
-    const stale = !bot || Date.now() / 1000 - (bot.at || 0) > 6 * 3600;
+    const SETUP_VERSION = 2; // bump when the command menu changes
+    const stale = !bot || bot.v !== SETUP_VERSION || Date.now() / 1000 - (bot.at || 0) > 6 * 3600;
     if (!oneOff && host && !/localhost/.test(host) && (stale || bot.host !== host)) {
       const me = await tg("getMe");
       await tg("setWebhook", { url: `https://${host}/api/telegram`, secret_token: webhookSecret(), allowed_updates: ["message", "callback_query"] });
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
       await tg("setMyDescription", { description: "Exit Alarm: get a message and a Telegram call the second a famous memecoin trader dumps a coin you hold." }).catch(() => {});
       const inbox = (await getJSON("alarm:inbox")) || {};
       await setJSON("alarm:inbox", { url: `https://${host}/api/hook`, secret: inbox.secret || randomBytes(18).toString("hex") });
-      bot = { username: me.username, host, at: Math.floor(Date.now() / 1000) };
+      bot = { username: me.username, host, at: Math.floor(Date.now() / 1000), v: SETUP_VERSION };
       await setJSON("alarm:bot", bot);
     }
     const radioSeen = await redis("GET", "radio:hookId");

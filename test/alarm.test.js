@@ -12,7 +12,8 @@ const { callText } = await import("../lib/caller.js");
 const { redis } = await import("../lib/redis.js");
 
 // ---- fake network ----
-const sent = [], calls = [];
+const sent = [], calls = [], puts = [];
+let hookAddrs = TRADERS.map((t) => t.id);
 let holding = true;
 globalThis.fetch = async (url, init = {}) => {
   const u = String(url);
@@ -25,6 +26,10 @@ globalThis.fetch = async (url, init = {}) => {
     return ok(true);
   }
   if (u.includes("callmebot")) { calls.push(new URL(u)); return { ok: true, status: 200, text: async () => "Call sent" }; }
+  if (u.includes("/v0/webhooks/")) {
+    if (init.method === "PUT") { puts.push(body); hookAddrs = body.accountAddresses; return { ok: true, json: async () => ({}) }; }
+    return { ok: true, json: async () => ({ webhookURL: "https://radio/api/hook", transactionTypes: ["ANY"], accountAddresses: hookAddrs, webhookType: "enhanced" }) };
+  }
   if (u.includes("helius")) return { ok: true, json: async () => ({ result: { value: holding ? [{ account: { data: { parsed: { info: { tokenAmount: { uiAmount: 5 } } } } } }] : [] } }) };
   throw new Error("unexpected fetch " + u);
 };
@@ -94,6 +99,41 @@ assert.equal((await call({}, [ev])).status, 401);
 const okRes = await call({ "x-alarm-secret": "s3cret" }, [{ ...ev, id: "SIGjkl:x" }]);
 assert.equal(okRes.status, 200);
 assert.equal(okRes.body.messages, 1);
+
+// Watch any wallet: /add, alarm with nickname, webhook gets the address, /remove
+const W = "WhaLe1111111111111111111111111111111111111";
+await redis("SET", "radio:hookId", "hook1");
+await redis("SET", "radio:hookAuth", "radioAuth");
+await say("/mode all");
+await say(`/add ${W} big whale`);
+assert.match(sent.at(-1).text, /Watching <b>big whale<\/b>/);
+assert.ok(puts.at(-1).accountAddresses.includes(W), "webhook now watches the wallet");
+assert.equal(puts.at(-1).authHeader, "radioAuth", "radio auth kept");
+assert.equal(puts.at(-1).accountAddresses.length, TRADERS.length + 1);
+r = await processEvents([{ id: "SIGwhale:x", ts: 1, t: W, n: null, side: "sell", mint: "MintW", sym: "WIF", sol: 50, custom: true }]);
+assert.equal(r.messages, 1);
+assert.match(sent.at(-1).text, /EXIT ALARM[\s\S]*👀 <b>big whale<\/b> just SOLD <b>\$WIF/);
+// pasting an address = /add, limit of 3
+await say("Wa11et22222222222222222222222222222222222");
+await say("/add Wa11et33333333333333333333333333333333333 three");
+await say("/add Wa11et44444444444444444444444444444444444");
+assert.match(sent.at(-1).text, /already watch 3 wallets/);
+// adding a famous trader's address just follows them
+await say(`/unfollow cupsey`);
+await say(`/add ${cupsey.id}`);
+assert.match(sent.at(-1).text, /one of our famous traders/);
+// /remove by nickname drops it from the webhook
+const putsBefore = puts.length;
+await say("/remove big whale");
+assert.match(sent.at(-1).text, /Stopped watching 👀 big whale/);
+assert.equal((await getUser(42)).follows.includes(W), false);
+assert.equal(puts.length, putsBefore + 1);
+assert.ok(!puts.at(-1).accountAddresses.includes(W));
+// radio drops a spam-bot wallet → followers are told
+const BOT = "Wa11et33333333333333333333333333333333333";
+await processEvents([{ id: `drop:${BOT}:1`, t: BOT, dropped: true }]);
+assert.match(sent.at(-1).text, /probably a trading bot/);
+assert.equal((await getUser(42)).follows.includes(BOT), false);
 
 // Telegram endpoint rejects updates without Telegram's secret header
 const { default: tgHook } = await import("../api/telegram.js");
