@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Exit Alarm</title>
+<meta name="description" content="Get a Telegram message and a Telegram call the second a famous memecoin trader dumps a coin you hold.">
+<meta property="og:title" content="Exit Alarm">
+<meta property="og:description" content="Your phone rings when Ansem, Cupsey or Orangie dump your coin.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: an emergency broadcast card. Hazard stripe, one big promise, a phone ringing, three steps. */
+:root {
+  --night: #0d0d0f; --card: #17171b; --rule: #2c2c33;
+  --ink: #f2f0ea; --mute: #a7a3a0;
+  --hazard: #ffd23f; --siren: #ff3b30;
+  --font-display: "Archivo Black", "Arial Black", Impact, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--night); color: var(--ink); }
+body { font: 16px/1.55 var(--font-body); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.stripe { height: 14px; background: repeating-linear-gradient(-45deg, var(--hazard) 0 18px, #111 18px 36px); }
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 36px 64px; display: flex; flex-direction: column; gap: 28px; }
+h1 { margin: 0; font: 400 clamp(40px, 9vw, 76px)/0.95 var(--font-display); letter-spacing: -.01em; }
+h1 span { color: var(--siren); }
+.lead { margin: 0; font-size: clamp(18px, 2.4vw, 22px); color: var(--ink); max-width: 34ch; text-wrap: balance; }
+.call { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: var(--card); border: 1px solid var(--rule); border-radius: 18px; padding: 18px; }
+.ring { width: 56px; height: 56px; border-radius: 50%; background: var(--siren); display: grid; place-items: center; font-size: 26px; animation: ring 1.2s ease-in-out infinite; }
+@keyframes ring { 0%, 100% { transform: rotate(0); box-shadow: 0 0 0 0 rgba(255,59,48,.6); } 10% { transform: rotate(-14deg); } 20% { transform: rotate(12deg); } 30% { transform: rotate(-8deg); } 40% { transform: rotate(0); box-shadow: 0 0 0 16px rgba(255,59,48,0); } }
+.call b { display: block; font-size: 15px; }
+.call q { font-family: var(--font-mono); font-size: 14px; color: var(--hazard); quotes: "“" "”"; }
+.cta { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--hazard); color: #111; font: 400 18px var(--font-display); padding: 16px 22px; border-radius: 14px; text-decoration: none; align-self: flex-start; }
+.cta[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.status { font-size: 14px; color: var(--mute); margin: -16px 0 0; }
+ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: s; }
+ol li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 14px; }
+ol li::before { content: counter(s); font: 400 18px var(--font-display); color: #111; background: var(--hazard); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
+code { font-family: var(--font-mono); background: #24242a; padding: 1px 6px; border-radius: 6px; font-size: 14px; }
+a { color: var(--hazard); }
+.fine { color: var(--mute); font-size: 13px; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .ring { animation: none; } }
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"></div>
+<main class="wrap">
+  <h1>EXIT<br><span>ALARM</span></h1>
+  <p class="lead">Your phone rings the second a famous trader dumps a coin you hold.</p>
+
+  <div class="call" aria-label="Example call">
+    <div class="ring" aria-hidden="true">📞</div>
+    <div><b>Incoming Telegram call</b><q>Exit alarm! Cupsey is selling GOBLIN. 40 SOL. Check Telegram now.</q></div>
+  </div>
+
+  <a class="cta" id="open" aria-disabled="true" target="_blank" rel="noopener">Open in Telegram →</a>
+  <p class="status" id="status">Connecting the bot…</p>
+
+  <ol>
+    <li><div>Open the bot and tap <b>⭐ Follow all 20 stars</b> (Ansem, Frank DeGods, Cupsey, Orangie, Cented…) or <code>/follow</code> anyone from the list of 100.</div></li>
+    <li><div>Send <code>/wallet</code> + your Solana address. Now you only get alarms when they sell a coin <b>you</b> hold. Only the public address, never your seed phrase.</div></li>
+    <li><div>Want the call? Press Start in <a href="https://t.me/CallMeBot_txtbot" target="_blank" rel="noopener">@CallMeBot_txtbot</a> once, then send <code>/call on</code> and <code>/call test</code> to the bot.</div></li>
+  </ol>
+
+  <p class="fine">Reads public on-chain data of 100 well-known traders. Calls are made through CallMeBot. Just for fun and information, not financial advice.</p>
+</main>
+<script>
+(async function () {
+  const open = document.getElementById("open"), status = document.getElementById("status");
+  try {
+    const r = await fetch("/api/setup", { cache: "no-store" }).then((x) => x.json());
+    if (r.bot) {
+      open.href = "https://t.me/" + r.bot;
+      open.removeAttribute("aria-disabled");
+      open.textContent = "Open @" + r.bot + " →";
+      status.textContent = r.radio ? "Live: watching 100 traders right now." : "Bot is ready. Waiting for the live trade feed.";
+    } else {
+      status.textContent = r.problem === "no_bot_token" ? "Almost there: the bot token still needs to be added." : "The bot isn't connected yet. Try again in a minute.";
+    }
+  } catch {
+    status.textContent = "Couldn't reach the server. Try again in a minute.";
+  }
+})();
+</script>
+</body>
+</html>
